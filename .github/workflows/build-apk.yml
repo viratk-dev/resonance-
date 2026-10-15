@@ -17,34 +17,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
         run: npm install
 
-      - name: Prebuild
-        run: npx expo prebuild --platform android --no-install --non-interactive
-
-      - name: Fix Gradle version
-        run: sed -i 's/gradle-9.3.1-bin.zip/gradle-8.10.2-bin.zip/' android/gradle/wrapper/gradle-wrapper.properties
-
-      - name: Accept Android licenses
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      - name: Build APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx4g"
-        env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx4g"
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: resonance-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Build APK with EAS
+        run: eas build --platform android --profile preview --non-interactive --no-wait
